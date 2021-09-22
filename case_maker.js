@@ -1,101 +1,55 @@
-/* eslint no-unused-vars: 'off' */
-
 //------------------------------------------------------------------------------
-// Functional operators
-
-const id = (x) => x;
+// General functional programming helpers
 
 const pipe =
   (...functions) =>
   (x) =>
     functions.reduce((val, func) => func(val), x);
 
-const map = (...functions) =>
-  functions.length === 1
-    ? (array) => array.map(functions[0])
-    : (array) => array.map(pipe(...functions));
-
-const reduce = (func, init) => (array) => array.reduce(func, init);
-
-const toArray = (x) => (Array.isArray(x) ? x : [x]);
-
-const ascend = (a, b) => a - b;
-const descend = (a, b) => b - a;
-const sort = (compare, get) => (array) =>
-  [...array].sort((a, b) => compare(get(a), get(b)));
+const always = () => true;
+const never = () => false;
 
 //------------------------------------------------------------------------------
-// String manipulators
+// Problem specific helpers
 
-const raiseWhen = (pred) => (str) =>
+const whenVowel = (ch) => 'aeiou'.includes(ch);
+const whenConsonant = (ch) => !whenVowel(ch);
+
+const raise = (pred) => (str) =>
   str
     .split('')
-    .map((ch) => (pred(ch) ? ch.toUpperCase() : ch))
+    .map((ch) => (pred(ch) ? ch.toUpperCase() : ch.toLowerCase()))
     .join('');
 
-const lowerAll = (str) => str.toLowerCase();
-const raiseAll = (str) => str.toUpperCase();
-const lowerFirst = (str) => str[0].toLowerCase() + str.slice(1);
-const raiseFirst = (str) => str[0].toUpperCase() + str.slice(1);
-
-const replace = (search, replace_) => (str) => str.replace(search, replace_);
-const parse = (str) => str.split(' ');
-const join = (sep) => (array) => array.join(sep);
+const replaceSpacesWith = (ch) => (str) => str.replace(/ /g, ch);
 
 //------------------------------------------------------------------------------
-// Case makers
+// Case-makers
 
-const title = pipe(lowerAll, parse, map(raiseFirst), join(' '));
-const pascal = pipe(title, replace(/ /g, ''));
-const camel = pipe(pascal, lowerFirst);
-const snake = pipe(lowerAll, replace(/ /g, '_'));
-const kebab = pipe(lowerAll, replace(/ /g, '-'));
-const vowels = raiseWhen((ch) => 'aeiou'.includes(ch));
-const consonants = raiseWhen((ch) => !'aeiou'.includes(ch));
-
-const caseFunctions = {
-  camel: { priority: 1, func: camel },
-  pascal: { priority: 1, func: pascal },
-  snake: { priority: 1, func: snake },
-  kebab: { priority: 1, func: kebab },
-  title: { priority: 1, func: title },
-  vowels: { priority: 2, func: vowels },
-  consonants: { priority: 2, func: consonants },
-  upper: { priority: 3, func: raiseAll },
-  lower: { priority: 3, func: lowerAll },
-};
-
-const makeCase = (input, caseNames) => {
-  const getPriority = (case_) => caseFunctions[case_].priority;
-  const makeCase = (str, case_) => caseFunctions[case_].func(str);
-
-  return pipe(
-    toArray,
-    sort(ascend, getPriority),
-    reduce(makeCase, input)
-  )(caseNames);
-};
+const uppercase = raise(always);
+const lowercase = raise(never);
+const vowels = raise(whenVowel);
+const consonants = raise(whenConsonant);
+const snake = pipe(raise(never), replaceSpacesWith('_'));
+const kebab = pipe(raise(never), replaceSpacesWith('-'));
+const title = uppercase;
+const pascal = uppercase;
+const camel = uppercase;
 
 //------------------------------------------------------------------------------
-// Testing
+// Tests
 
-const assertEqual = function (actual, expected) {
-  const passed = (actual, expected) =>
-    `\x1b[2m\x1b[32m   Assertion passed: ${actual} === ${expected}`;
-  const failed = (actual, expected) =>
-    `\x1b[0m\x1b[31m\u274c Assertion failed: ${actual} !== ${expected}`;
-  const assert = actual === expected ? passed : failed;
-  console.log(assert(actual, expected));
-};
+const assert = (match, msg) =>
+  console.log(`[${match ? '  -  ' : ' !!! '}]: ${msg}`);
 
-assertEqual(makeCase('this is a string', 'camel'), 'thisIsAString');
-assertEqual(makeCase('this is a string', 'pascal'), 'ThisIsAString');
-assertEqual(makeCase('this is a string', 'snake'), 'this_is_a_string');
-assertEqual(makeCase('this is a string', 'kebab'), 'this-is-a-string');
-assertEqual(makeCase('this is a string', 'title'), 'This Is A String');
-assertEqual(makeCase('this is a string', 'vowels'), 'thIs Is A strIng');
-assertEqual(makeCase('this is a string', 'consonants'), 'THiS iS a STRiNG');
-assertEqual(
-  makeCase('this is a string', ['upper', 'snake']),
-  'THIS_IS_A_STRING'
-);
+const str = 'Test this string';
+
+assert(uppercase(str) === 'TEST THIS STRING', 'uppercase');
+assert(lowercase(str) === 'test this string', 'lowercase');
+assert(vowels(str) === 'tEst thIs strIng', 'vowels');
+assert(consonants(str) === 'TeST THiS STRiNG', 'consonants');
+assert(snake(str) === 'test_this_string', 'snake');
+assert(kebab(str) === 'test-this-string', 'kebab');
+assert(title(str) === 'Test This String', 'title');
+assert(pascal(str) === 'TestThisString', 'pascal');
+assert(camel(str) === 'testThisString', 'camel');
