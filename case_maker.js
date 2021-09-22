@@ -19,7 +19,7 @@ const afterSpace = (ch, prev) => prev === ' ';
 const lower = (pred) => (str) =>
   str
     .split('')
-    .map((ch, index) => (pred(ch, str[index - 1]) ? ch.toLowerCase() : ch))
+    .map((ch) => (pred(ch) ? ch.toLowerCase() : ch))
     .join('');
 
 const raise = (pred) => (str) =>
@@ -33,13 +33,13 @@ const replaceSpacesWith = (ch) => (str) => str.replace(/ /g, ch);
 //------------------------------------------------------------------------------
 // Case-makers
 
-const uppercase = raise(always);
 const lowercase = lower(always);
+const uppercase = raise(always);
 const vowels = pipe(lowercase, raise(whenVowel));
 const consonants = pipe(lowercase, raise(whenConsonant));
 const snake = pipe(lowercase, replaceSpacesWith('_'));
 const kebab = pipe(lowercase, replaceSpacesWith('-'));
-const title = pipe(lowercase, raise(whenFirst), raise(afterSpace));
+const title = pipe(lowercase, raise(afterSpace), raise(whenFirst));
 const pascal = pipe(title, replaceSpacesWith(''));
 const camel = pipe(lowercase, raise(afterSpace), replaceSpacesWith(''));
 
