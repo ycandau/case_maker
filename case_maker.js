@@ -1,20 +1,24 @@
 //------------------------------------------------------------------------------
-// General functional programming helpers
+// Helpers: Functional programming
 
 const pipe =
   (...functions) =>
   (x) =>
     functions.reduce((val, func) => func(val), x);
 
-const always = () => true;
+const all = () => true;
 
 //------------------------------------------------------------------------------
-// Problem specific helpers
+// Helpers: Problem specific
+
+// Predicates
 
 const whenVowel = (ch) => 'aeiou'.includes(ch);
 const whenConsonant = (ch) => !whenVowel(ch);
 const whenFirst = (ch, prev) => prev === undefined;
 const afterSpace = (ch, prev) => prev === ' ';
+
+// Change characters to lowercase when a predicate is true
 
 const lower = (pred) => (str) =>
   str
@@ -22,19 +26,23 @@ const lower = (pred) => (str) =>
     .map((ch) => (pred(ch) ? ch.toLowerCase() : ch))
     .join('');
 
+// Change characters to uppercase when a predicate is true
+
 const raise = (pred) => (str) =>
   str
     .split('')
     .map((ch, index) => (pred(ch, str[index - 1]) ? ch.toUpperCase() : ch))
     .join('');
 
+// Replace spaces in a string
+
 const replaceSpacesWith = (ch) => (str) => str.replace(/ /g, ch);
 
 //------------------------------------------------------------------------------
 // Case-makers
 
-const lowercase = lower(always);
-const uppercase = raise(always);
+const lowercase = lower(all);
+const uppercase = raise(all);
 const vowels = pipe(lowercase, raise(whenVowel));
 const consonants = pipe(lowercase, raise(whenConsonant));
 const snake = pipe(lowercase, replaceSpacesWith('_'));
