@@ -7,18 +7,25 @@ const pipe =
     functions.reduce((val, func) => func(val), x);
 
 const always = () => true;
-const never = () => false;
 
 //------------------------------------------------------------------------------
 // Problem specific helpers
 
 const whenVowel = (ch) => 'aeiou'.includes(ch);
 const whenConsonant = (ch) => !whenVowel(ch);
+const whenFirst = (ch, prev) => prev === undefined;
+const afterSpace = (ch, prev) => prev === ' ';
+
+const lower = (pred) => (str) =>
+  str
+    .split('')
+    .map((ch, index) => (pred(ch, str[index - 1]) ? ch.toLowerCase() : ch))
+    .join('');
 
 const raise = (pred) => (str) =>
   str
     .split('')
-    .map((ch) => (pred(ch) ? ch.toUpperCase() : ch.toLowerCase()))
+    .map((ch, index) => (pred(ch, str[index - 1]) ? ch.toUpperCase() : ch))
     .join('');
 
 const replaceSpacesWith = (ch) => (str) => str.replace(/ /g, ch);
@@ -27,14 +34,14 @@ const replaceSpacesWith = (ch) => (str) => str.replace(/ /g, ch);
 // Case-makers
 
 const uppercase = raise(always);
-const lowercase = raise(never);
-const vowels = raise(whenVowel);
-const consonants = raise(whenConsonant);
-const snake = pipe(raise(never), replaceSpacesWith('_'));
-const kebab = pipe(raise(never), replaceSpacesWith('-'));
-const title = uppercase;
-const pascal = uppercase;
-const camel = uppercase;
+const lowercase = lower(always);
+const vowels = pipe(lowercase, raise(whenVowel));
+const consonants = pipe(lowercase, raise(whenConsonant));
+const snake = pipe(lowercase, replaceSpacesWith('_'));
+const kebab = pipe(lowercase, replaceSpacesWith('-'));
+const title = pipe(lowercase, raise(whenFirst), raise(afterSpace));
+const pascal = pipe(title, replaceSpacesWith(''));
+const camel = pipe(lowercase, raise(afterSpace), replaceSpacesWith(''));
 
 //------------------------------------------------------------------------------
 // Tests
